@@ -30,11 +30,12 @@ class AuthService {
 
       await _storage.write(key: _tokenKey, value: token);
       return {"ok": true, "token": token};
-    } catch (e) {
-      final msg = e is AppError ? e.message : "Login failed.";
-      final status = e is AppError ? e.statusCode : null;
-      return {"ok": false, "msg": msg, "status": status};
-    }
+   } catch (e) {
+  print("LOGIN ERROR: $e");
+  final msg = e is AppError ? e.message : "Login failed: $e";
+  final status = e is AppError ? e.statusCode : null;
+  return {"ok": false, "msg": msg, "status": status};
+}
   }
 
   static Future<Map<String, dynamic>> register({
@@ -53,12 +54,37 @@ class AuthService {
       );
 
       return {"ok": true};
-    } catch (e) {
-      final msg = e is AppError ? e.message : "Registration failed.";
-      final status = e is AppError ? e.statusCode : null;
-      return {"ok": false, "msg": msg, "status": status};
-    }
+   } catch (e) {
+  print("REGISTER ERROR: $e");
+  final msg = e is AppError ? e.message : "Registration failed: $e";
+  final status = e is AppError ? e.statusCode : null;
+  return {"ok": false, "msg": msg, "status": status};
+}
   }
+
+static Future<Map<String, dynamic>> forgotPassword({
+  required String email,
+}) async {
+  try {
+    final data = await _api.postJson<Map<String, dynamic>>(
+      "/api/v1/auth/forgot-password",
+      body: {
+        "email": email.trim(),
+      },
+      parser: (json) => (json as Map).cast<String, dynamic>(),
+    );
+
+    return {
+      "ok": true,
+      "msg": data["message"] ?? "If this email exists, a reset link has been sent."
+    };
+  } catch (e) {
+  print("FORGOT PASSWORD ERROR: $e");
+  final msg = e is AppError ? e.message : "Forgot password request failed: $e";
+  final status = e is AppError ? e.statusCode : null;
+  return {"ok": false, "msg": msg, "status": status};
+}
+}
 
   static Future<Map<String, dynamic>> getMe() async {
     final token = await getToken();
