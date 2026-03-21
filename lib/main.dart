@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'auth/login_screen.dart';
+import 'auth/auth_gate.dart';
+import 'home/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,9 +11,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+
+      initialRoute: "/",
+
+      routes: {
+        "/": (context) => const AuthGate(),
+        "/home": (context) => const HomeScreen(),
+      },
     );
   }
 }
+
+
+
+
+
+

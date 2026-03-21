@@ -10,65 +10,123 @@ class JobDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         title: Text(job.title),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(job.title,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              Text(job.company,
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700])),
-              SizedBox(height: 4),
-              Text(job.location,
-                  style: TextStyle(fontSize: 14, color: Colors.grey)),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Chip(label: Text(job.jobType)),
-                  SizedBox(width: 8),
-                  Chip(label: Text(job.salary)),
-                ],
-              ),
-              SizedBox(height: 16),
-              Text("Job Description",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              Text(job.description),
-              SizedBox(height: 16),
-              Text("Required Skills",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: job.skills
-                    .map((skill) => Chip(label: Text(skill)))
-                    .toList(),
-              ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ApplyScreen(job: job),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  width: 55,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.business, size: 30),
+                ),
+                const SizedBox(width: 15),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(job.title,
+                        style: const TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
+                    Text(job.company,
+                        style: const TextStyle(color: Colors.grey)),
+                    Text(job.location,
+                        style: const TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            // Job Description
+            const Text(
+              "Job Description",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              job.description,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
+
+            const SizedBox(height: 25),
+
+            // Required Skills
+            const Text(
+              "Required Skills",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: job.skills
+                  .map(
+                    (skill) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle,
+                              color: Colors.green, size: 22),
+                          const SizedBox(width: 10),
+                          Text(
+                            skill,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  child: Text("Apply Now"),
+                    ),
+                  )
+                  .toList(),
+            ),
+
+            const SizedBox(height: 40),
+
+            // Apply Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ApplyScreen(job: job),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  "APPLY NOW",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+
+

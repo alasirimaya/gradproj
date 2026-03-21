@@ -3,43 +3,54 @@ import 'job_model.dart';
 
 class SuccessScreen extends StatelessWidget {
   final Job job;
+  final String fileName;
 
-  const SuccessScreen({super.key, required this.job});
+  const SuccessScreen({
+    super.key,
+    required this.job,
+    required this.fileName,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 80),
-              SizedBox(height: 16),
-              Text(
-                "Application Submitted!",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "You have successfully applied for ${job.title} at ${job.company}.",
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  },
-                  child: Text("Back to Home"),
-                ),
-              ),
-            ],
-          ),
+      appBar: AppBar(
+        title: Text(job.title),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Application Sent!",
+                style: const TextStyle(
+                    fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+
+            Text("Job: ${job.title}"),
+            Text("Company: ${job.company}"),
+            Text("Location: ${job.location}"),
+
+            const SizedBox(height: 20),
+
+            Text("Uploaded File: $fileName"),
+
+            const Spacer(),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.popUntil(context, ModalRoute.withName("/home"));
+              },
+              child: const Text("Back to Home"),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+
+
+
+

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+import 'dart:html' as html;
 import 'job_model.dart';
 import 'success_screen.dart';
 
@@ -13,84 +13,61 @@ class UploadCVScreen extends StatefulWidget {
 }
 
 class _UploadCVScreenState extends State<UploadCVScreen> {
-  PlatformFile? selectedFile;
+  String? selectedFile;
 
-  Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'doc', 'docx'],
-    );
+  void pickFile() {
+    final uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = '.pdf,.doc,.docx';
+    uploadInput.click();
 
-    if (result != null) {
+    uploadInput.onChange.listen((event) {
+      final file = uploadInput.files!.first;
       setState(() {
-        selectedFile = result.files.first;
+        selectedFile = file.name;
       });
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Upload CV")),
+      appBar: AppBar(title: const Text("Upload CV")),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Job: ${widget.job.title}",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
-            Text("Upload your CV to complete the application."),
-            SizedBox(height: 24),
-
-            // زر اختيار الملف
             GestureDetector(
               onTap: pickFile,
               child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey),
-                ),
+                padding: const EdgeInsets.all(20),
+                color: Colors.grey.shade200,
                 child: Row(
                   children: [
-                    Icon(Icons.upload_file),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        selectedFile == null
-                            ? "Tap to select CV file"
-                            : selectedFile!.name,
-                        style: TextStyle(
-                          color: selectedFile == null
-                              ? Colors.grey
-                              : Colors.black,
-                        ),
-                      ),
-                    ),
+                    const Icon(Icons.upload_file),
+                    const SizedBox(width: 10),
+                    Text(selectedFile ?? "Tap to select CV file"),
                   ],
                 ),
               ),
             ),
 
-            Spacer(),
+            const Spacer(),
 
-            // زر الإرسال
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: selectedFile == null
-                    ? null
-                    : () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SuccessScreen(job: widget.job),
+            ElevatedButton(
+              onPressed: selectedFile == null
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SuccessScreen(
+                            job: widget.job,
+                            fileName: selectedFile!,
                           ),
-                        );
-                      },
-                child: Text("Submit Application"),
-              ),
+                        ),
+                      );
+                    },
+              child: const Text("Submit Application"),
             ),
           ],
         ),
@@ -98,3 +75,9 @@ class _UploadCVScreenState extends State<UploadCVScreen> {
     );
   }
 }
+
+
+
+
+
+
