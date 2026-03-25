@@ -5,14 +5,14 @@ from fastapi import APIRouter
 from auth.router import router as auth_router
 from jobs import router as jobs_router  # hajar
 
-
+from .applications import router as applications_router
 api_router = APIRouter()
 
 # Noura – Include authentication routes under /auth
 # This makes auth endpoints available under /api/v1/auth/*
 api_router.include_router(auth_router, prefix="/auth")
 api_router.include_router(jobs_router)  # hajar
-
+api_router.include_router(applications_router)
 @api_router.get("/ping")
 def ping():
     return {"message": "pong-HAJAR"} 
