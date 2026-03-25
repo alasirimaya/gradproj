@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:skillin_application/auth/auth_gate.dart';
+//import 'package:skillin_application/auth/auth_gate.dart';
+
+import 'auth/auth_gate.dart';
 
 void main() {
   runApp(const MyApp());
