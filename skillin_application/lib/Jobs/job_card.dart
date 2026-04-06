@@ -1,67 +1,150 @@
+
+
+
+
 import 'package:flutter/material.dart';
+import 'package:skillin_application/profile/saved_job_model.dart';
+import 'package:skillin_application/profile/saved_jobs_provider.dart';
 import 'job_model.dart';
 
-class JobCard extends StatelessWidget {
+class JobCard extends StatefulWidget {
   final JobModel job;
+  final String location;
+  final String jobType;
+  final String timeAgo;
   final VoidCallback onTap;
 
-  const JobCard({super.key, required this.job, required this.onTap});
+  const JobCard({
+    super.key,
+    required this.job,
+    required this.location,
+    required this.jobType,
+    required this.timeAgo,
+    required this.onTap,
+  });
 
   @override
+  State<JobCard> createState() => _JobCardState();
+}
+
+class _JobCardState extends State<JobCard> {
+  @override
   Widget build(BuildContext context) {
+    final isSaved = SavedJobsProvider.isSaved(widget.job.id);
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10),
+        margin: const EdgeInsets.only(bottom: 14),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
+              color: Color(0x11000000),
+              blurRadius: 10,
               offset: Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Image.asset(job.logo, height: 40),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(job.title,
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE7DBFF),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.business_center,
+                    color: Color(0xFF1B1F3B),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.job.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text("${job.company} • ${job.location}",
-                        style: TextStyle(color: Colors.grey[600])),
-                  ],
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1B1F3B),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "${widget.job.company} • ${widget.location}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF6A6F85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    SavedJobsProvider.toggleSaved(
+                      SavedJobModel(
+                        id: widget.job.id,
+                        title: widget.job.title,
+                        company: widget.job.company,
+                        location: widget.location,
+                        jobType: widget.jobType,
+                      ),
+                    );
+                    setState(() {});
+                  },
+                  icon: Icon(
+                    isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    color: const Color(0xFF6A6F85),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(job.category,
-                    style: TextStyle(color: Colors.grey[700])),
-                Text(job.type, style: TextStyle(color: Colors.grey[700])),
-                Text(job.position, style: TextStyle(color: Colors.grey[700])),
+                _tag(
+                  widget.job.skills.isEmpty ? "General" : widget.job.skills,
+                ),
+                const SizedBox(width: 8),
+                _tag(widget.jobType),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(job.salary,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
-                Text(job.timeAgo, style: TextStyle(color: Colors.grey[600])),
+                Text(
+                  widget.timeAgo,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF6A6F85),
+                  ),
+                ),
+                const Spacer(),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFD8E3FF),
+                    foregroundColor: const Color(0xFF4A63D3),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: widget.onTap,
+                  child: const Text("Apply"),
+                ),
               ],
             ),
           ],
@@ -69,8 +152,26 @@ class JobCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _tag(String text) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0F1F7),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Color(0xFF6A6F85),
+          ),
+        ),
+      ),
+    );
+  }
 }
-
-
-
-

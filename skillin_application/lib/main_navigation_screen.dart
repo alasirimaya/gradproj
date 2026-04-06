@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'home/home_screen.dart';
 import 'profile/profile_screen.dart';
+import 'profile/saved_jobs_screen.dart';
 import 'dashboard/dashboard_screen.dart';
+
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -11,74 +13,46 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-
   int currentIndex = 0;
 
   final List<Widget> screens = [
-
     const HomeScreen(),
-
-    const Center(
-      child: Text("Saved Jobs"),
-    ),
-
+    const SavedJobsScreen(),
     const ProfileScreen(),
-
     const DashboardScreen(),
-     
   ];
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       body: screens[currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
-
         currentIndex: currentIndex,
-
         onTap: (index) {
-
           setState(() {
-
             currentIndex = index;
-
           });
-
         },
-
         type: BottomNavigationBarType.fixed,
-
         items: const [
-
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: "Home",
           ),
-
           BottomNavigationBarItem(
             icon: Icon(Icons.bookmark),
             label: "Saved",
           ),
-
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: "Profile",
           ),
-
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: "Dashboard",
           ),
-
         ],
-
       ),
-
     );
-
   }
-
 }
