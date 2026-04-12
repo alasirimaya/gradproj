@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
-
+from applications import router as applications_router
 app = FastAPI(title="SkillIn API")
 
 app.add_middleware(
@@ -12,7 +12,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api/v1")
-
+app.include_router(applications_router,prefix="/api/v1")
 @app.get("/health")
 def health():
     return {"status": "ok"}

@@ -25,6 +25,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _languagesController = TextEditingController();
   final TextEditingController _resumeController = TextEditingController();
 
+// إضافتي
+final TextEditingController _cityController = TextEditingController();
+
+// إضافتي
+final TextEditingController _countryController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -39,12 +45,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final languages = await ProfileLocalService.getLanguages();
     final resume = await ProfileLocalService.getResumeName();
 
+    // إضافتي
+final city = await ProfileLocalService.getCity();
+
+// إضافتي
+final country = await ProfileLocalService.getCountry();
+
     _aboutController.text = about;
     _experienceController.text = experience;
     _educationController.text = education;
     _skillsController.text = skills.join(', ');
     _languagesController.text = languages.join(', ');
     _resumeController.text = resume;
+
+// إضافتي
+_cityController.text = city;
+
+// إضافتي
+_countryController.text = country;
 
     setState(() {
       _loading = false;
@@ -69,8 +87,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       skills: _splitList(_skillsController.text),
       languages: _splitList(_languagesController.text),
       resumeName: _resumeController.text.trim(),
+      
     );
+// إضافتي
+await ProfileLocalService.saveCity(_cityController.text.trim());
 
+// إضافتي
+await ProfileLocalService.saveCountry(_countryController.text.trim());
     if (!mounted) return;
     setState(() => _saving = false);
 
@@ -91,6 +114,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _skillsController.dispose();
     _languagesController.dispose();
     _resumeController.dispose();
+    // إضافتي
+_cityController.dispose();
+
+// إضافتي
+_countryController.dispose();
     super.dispose();
   }
 
@@ -334,6 +362,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   hint: "Enter your resume file name",
                 ),
               ),
+
+// إضافتي
+_buildSectionCard(
+  icon: Icons.location_city_outlined,
+  title: "City",
+  child: _buildTextField(
+    controller: _cityController,
+    hint: "Enter your city",
+  ),
+),
+
+// إضافتي
+_buildSectionCard(
+  icon: Icons.public_outlined,
+  title: "Country",
+  child: _buildTextField(
+    controller: _countryController,
+    hint: "Enter your country",
+  ),
+),
+
+
+
+
+
             ],
           ),
         ),

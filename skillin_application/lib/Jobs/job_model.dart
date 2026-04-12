@@ -1,22 +1,25 @@
-class Job {
+class JobModel {
+  final int id;
   final String title;
   final String company;
-  final String location;
-  final String jobType;
-  final String salary;
   final String description;
-  final List<String> skills;
+  final String skills;
 
-  Job({
+  JobModel({
+    required this.id,
     required this.title,
     required this.company,
-    required this.location,
-    required this.jobType,
-    required this.salary,
     required this.description,
     required this.skills,
   });
+
+  factory JobModel.fromJson(Map<String, dynamic> json) {
+    return JobModel(
+      id: json['id'] ?? 0,
+      title: (json['title'] ?? '').toString(),
+      company: (json['company'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      skills: (json['skills'] ?? '').toString(),
+    );
+  }
 }
-
-
-

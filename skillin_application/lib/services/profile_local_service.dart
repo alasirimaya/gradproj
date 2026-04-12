@@ -9,6 +9,12 @@ class ProfileLocalService {
   static const String _languagesKey = 'profile_languages';
   static const String _resumeNameKey = 'profile_resume_name';
 
+// إضافتي
+static const String _cityKey = 'profile_city';
+
+// إضافتي
+static const String _countryKey = 'profile_country';
+
   static Future<void> saveAbout(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_aboutKey, value);
@@ -74,6 +80,29 @@ class ProfileLocalService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_resumeNameKey) ?? '';
   }
+  // إضافتي
+static Future<void> saveCity(String value) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_cityKey, value);
+}
+
+// إضافتي
+static Future<String> getCity() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_cityKey) ?? '';
+}
+
+// إضافتي
+static Future<void> saveCountry(String value) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_countryKey, value);
+}
+
+// إضافتي
+static Future<String> getCountry() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_countryKey) ?? '';
+}
 
   static Future<void> saveAll({
     required String about,
@@ -82,6 +111,11 @@ class ProfileLocalService {
     required List<String> skills,
     required List<String> languages,
     required String resumeName,
+    // إضافتي
+  String? city,
+
+  // إضافتي
+  String? country,
   }) async {
     await saveAbout(about);
     await saveExperience(experience);
@@ -89,5 +123,14 @@ class ProfileLocalService {
     await saveSkills(skills);
     await saveLanguages(languages);
     await saveResumeName(resumeName);
+    // إضافتي
+  if (city != null) {
+    await saveCity(city);
+  }
+
+  // إضافتي
+  if (country != null) {
+    await saveCountry(country);
   }
 }
+  }

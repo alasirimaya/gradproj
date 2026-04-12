@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skillin_application/services/auth_service.dart';
 import 'package:skillin_application/auth/login_screen.dart';
-import 'package:skillin_application/home/home_screen.dart';
+import 'package:skillin_application/main_navigation_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -20,7 +20,7 @@ class AuthGate extends StatelessWidget {
         final loggedIn = snapshot.data == true;
 
         if (loggedIn) {
-          return const HomeScreen();
+          return const MainNavigationScreen();
         } else {
           return const LoginScreen();
         }
