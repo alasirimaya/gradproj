@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Job
 
+# NEW: استدعاء خدمة تخزين الـ Embedding
+from app.api.v1.embedding_service import save_job_embedding
+
 router = APIRouter(
     prefix="/jobs",
     tags=["Jobs"]
@@ -25,6 +28,10 @@ def create_job(
     db.add(new_job)
     db.commit()
     db.refresh(new_job)
+
+    # NEW: تخزين embedding للوظيفة الجديدة
+    save_job_embedding(db, new_job)
+
     return new_job
 
 
@@ -39,6 +46,7 @@ def get_job(job_id: int, db: Session = Depends(get_db)):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
+
 
 
 

@@ -1,19 +1,23 @@
 from fastapi import APIRouter
-
-# Noura – Auth module integration
-# This router handles user authentication endpoints (register, login, get current user)
 from auth.router import router as auth_router
-from jobs import router as jobs_router  # hajar
+from jobs import router as jobs_router
 
+from app.api.v1.recommendation import router as recommendation_router
 
 api_router = APIRouter()
 
-# Noura – Include authentication routes under /auth
-# This makes auth endpoints available under /api/v1/auth/*
+# Authentication routes
 api_router.include_router(auth_router, prefix="/auth")
-api_router.include_router(jobs_router)  # hajar
+
+# Jobs routes
+api_router.include_router(jobs_router)
+
+# Recommendation routes
+api_router.include_router(recommendation_router, prefix="/recommend", tags=["Recommendation"])
 
 @api_router.get("/ping")
 def ping():
-    return {"message": "pong-HAJAR"} 
+    return {"message": "pong-HAJAR"}
+
+
     

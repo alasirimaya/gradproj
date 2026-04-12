@@ -1,10 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, UniqueConstraint, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
 
+
+# ============================
+# USERS
+# ============================
+
 class User(Base):
     __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String(120))
     email = Column(String(120), unique=True, index=True, nullable=False)
@@ -13,8 +19,17 @@ class User(Base):
     skills = relationship("UserSkill", back_populates="user")
     applications = relationship("Application", back_populates="user")
 
+    # NEW — Relationship to embedding table
+    embedding_data = relationship("UserEmbedding", uselist=False, back_populates="user")
+
+
+# ============================
+# JOBS
+# ============================
+
 class Job(Base):
     __tablename__ = "jobs"
+
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(150), nullable=False)
     company = Column(String(150), nullable=False)
@@ -23,15 +38,26 @@ class Job(Base):
 
     applications = relationship("Application", back_populates="job")
 
+    # NEW — Relationship to embedding table
+    embedding_data = relationship("JobEmbedding", uselist=False, back_populates="job")
+
+
+# ============================
+# SKILLS
+# ============================
+
 class Skill(Base):
     __tablename__ = "skills"
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(80), unique=True, nullable=False)
 
     users = relationship("UserSkill", back_populates="skill")
 
+
 class UserSkill(Base):
     __tablename__ = "user_skills"
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     skill_id = Column(Integer, ForeignKey("skills.id"))
@@ -41,8 +67,14 @@ class UserSkill(Base):
 
     __table_args__ = (UniqueConstraint("user_id", "skill_id", name="unique_user_skill"),)
 
+
+# ============================
+# APPLICATIONS
+# ============================
+
 class Application(Base):
     __tablename__ = "applications"
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     job_id = Column(Integer, ForeignKey("jobs.id"))
@@ -53,3 +85,34 @@ class Application(Base):
     job = relationship("Job", back_populates="applications")
 
     __table_args__ = (UniqueConstraint("user_id", "job_id", name="unique_application"),)
+
+
+# ============================
+# USER EMBEDDINGS
+# ============================
+
+class UserEmbedding(Base):
+    __tablename__ = "user_embeddings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    embedding = Column(JSON)  # list of floats
+
+    user = relationship("User", back_populates="embedding_data")
+
+
+# ============================
+# JOB EMBEDDINGS
+# ============================
+
+class JobEmbedding(Base):
+    __tablename__ = "job_embeddings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id"), unique=True)
+    embedding = Column(JSON)  # list of floats
+
+    job = relationship("Job", back_populates="embedding_data")
+
+
+

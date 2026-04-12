@@ -8,8 +8,13 @@ from auth.security import hash_password, verify_password, create_access_token, d
 from database import get_db
 from models import User
 
+# NEW: استدعاء خدمة التخزين
+from app.api.v1.embedding_service import save_user_embedding
+
 router = APIRouter(tags=["Auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
 @router.post("/register", response_model=MeResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == payload.email).first()
@@ -25,7 +30,11 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
+    # NEW: تخزين embedding للمستخدم الجديد
+    save_user_embedding(db, user)
+
     return MeResponse(id=user.id, full_name=user.full_name, email=user.email)
+
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
@@ -39,6 +48,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token(subject=str(user.id))
     return TokenResponse(access_token=token)
 
+
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
     try:
         payload = decode_token(token)
@@ -50,6 +60,7 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
+
 
 @router.get("/me", response_model=MeResponse)
 def me(current_user: User = Depends(get_current_user)):
