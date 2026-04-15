@@ -34,4 +34,20 @@ class JobsService {
       return {"ok": false, "msg": msg, "status": status};
     }
   }
+
+  // ✅ ADD IT HERE (inside class)
+  static Future<Map<String, dynamic>> getRecommendations(int userId) async {
+    try {
+      final data = await _api.getJson<Map<String, dynamic>>(
+        "/api/v1/recommend/recommend/$userId",
+        parser: (json) => (json as Map).cast<String, dynamic>(),
+      );
+
+      return {"ok": true, "data": data};
+    } catch (e) {
+      final msg = e is AppError ? e.message : "Failed to load recommendations.";
+      final status = e is AppError ? e.statusCode : null;
+      return {"ok": false, "msg": msg, "status": status};
+    }
+  }
 }
