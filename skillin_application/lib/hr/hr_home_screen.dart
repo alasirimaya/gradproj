@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skillin_application/services/auth_service.dart';
-
+import 'package:skillin_application/auth/login_screen.dart';
 class HrHomeScreen extends StatefulWidget {
   const HrHomeScreen({super.key});
 
@@ -11,10 +11,14 @@ class HrHomeScreen extends StatefulWidget {
 class _HrHomeScreenState extends State<HrHomeScreen> {
   String userName = "HR";
 
+List<dynamic> candidates = [];
+bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _loadCandidates();
   }
 
   Future<void> _loadUser() async {
@@ -27,7 +31,22 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
       });
     }
   }
+Future<void> _loadCandidates() async {
 
+  final result = await AuthService.getCandidates();
+
+  if (mounted) {
+
+    setState(() {
+
+      candidates = result;
+      isLoading = false;
+
+    });
+
+  }
+
+}
   Widget _candidateCard({
     required String name,
     required String subtitle,
@@ -110,8 +129,42 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FB),
-      body: SafeArea(
+    
+//
+  appBar: AppBar(
+
+    title: const Text("HR"),
+
+    actions: [
+
+      IconButton(
+
+        icon: const Icon(Icons.logout),
+
+        onPressed: () async {
+
+          await AuthService.logout();
+
+if (!mounted) return;
+
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const LoginScreen(),
+    ),
+    (route) => false,
+  );
+        },
+
+      ),
+
+    ],
+
+  ),
+
+  backgroundColor: const Color(0xFFF5F6FB),
+
+  body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           child: Column(
@@ -200,16 +253,32 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
               Expanded(
                 child: ListView(
                   children: [
-                    _candidateCard(
-                      name: "Amal Ahmad",
-                      subtitle: "Open to work · Riyadh, KSA",
-                      tags: ["Design", "Full time", "Senior designer"],
-                    ),
-                    _candidateCard(
-                      name: "Lama Khalid",
-                      subtitle: "Software Engineer · Remote",
-                      tags: ["Flutter", "Remote", "Full stack"],
-                    ),
+                 if (isLoading)
+  const Center(child: CircularProgressIndicator())
+else
+  ...candidates.map((user) {
+
+    return _candidateCard(
+
+      name: user["full_name"] ?? "No name",
+
+      subtitle:
+          "Open to work · ${user["location"] ?? "Unknown"}",
+
+     tags: [
+
+  (user["skill"] != null && user["skill"] != "")
+      ? user["skill"]
+      : "General",
+
+  (user["job_type"] != null && user["job_type"] != "")
+      ? user["job_type"]
+      : "Open",
+
+],
+    );
+
+  }).toList(),
                   ],
                 ),
               ),

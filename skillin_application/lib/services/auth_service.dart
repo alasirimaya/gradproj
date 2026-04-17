@@ -139,4 +139,35 @@ class AuthService {
   static Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
   }
+  static Future<List<dynamic>> getCandidates() async {
+
+  final token = await getToken();
+
+  if (token == null || token.isEmpty) {
+    return [];
+  }
+
+  try {
+
+    final data = await _api.getJson<List<dynamic>>(
+
+      "/api/v1/users/personal",
+
+      token: token,
+
+      parser: (json) => (json as List).cast<dynamic>(),
+
+    );
+
+    return data;
+
+  } catch (e) {
+
+    print("GET CANDIDATES ERROR: $e");
+
+    return [];
+
+  }
+
+}
 }
