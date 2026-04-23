@@ -17,7 +17,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String userName = "User";
   bool isLoadingJobs = true;
+
   List<JobModel> recentJobs = [];
+  List<JobModel> allJobs = [];
 
   @override
   void initState() {
@@ -47,11 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
+      final jobs = data
+          .map((job) => JobModel.fromJson(Map<String, dynamic>.from(job)))
+          .toList();
+
       setState(() {
-        recentJobs = data
-            .map((job) => JobModel.fromJson(Map<String, dynamic>.from(job)))
-            .take(3)
-            .toList();
+        allJobs = jobs;
+        recentJobs = jobs.take(3).toList();
         isLoadingJobs = false;
       });
     } else {
@@ -63,12 +67,38 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  int _countFullTimeJobs() {
+    return allJobs.where((job) {
+      final type = job.type.toLowerCase().replaceAll("-", " ").trim();
+      return type == "full time";
+    }).length;
+  }
+
+  int _countPartTimeJobs() {
+    return allJobs.where((job) {
+      final type = job.type.toLowerCase().replaceAll("-", " ").trim();
+      return type == "part time";
+    }).length;
+  }
+
+  int _countRemoteJobs() {
+    return allJobs.where((job) {
+      final workplace = job.category.toLowerCase().trim();
+      final type = job.type.toLowerCase().replaceAll("-", " ").trim();
+      return workplace == "remote" || type == "remote";
+    }).length;
+  }
+
   String _jobTypePlaceholder(int index) {
+    final type = recentJobs[index].type.trim();
+    if (type.isNotEmpty) return type;
     const types = ["Full Time", "Part Time", "Remote"];
     return types[index % types.length];
   }
 
   String _locationPlaceholder(int index) {
+    final location = recentJobs[index].location.trim();
+    if (location.isNotEmpty) return location;
     const locations = ["Riyadh, KSA", "Jeddah, KSA", "Dammam, KSA"];
     return locations[index % locations.length];
   }
@@ -392,6 +422,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final remoteCount = _countRemoteJobs();
+    final fullTimeCount = _countFullTimeJobs();
+    final partTimeCount = _countPartTimeJobs();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FB),
       body: SafeArea(
@@ -409,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 children: [
                   _buildCategoryCard(
-                    title: "44.5k",
+                    title: remoteCount.toString(),
                     subtitle: "Remote Job",
                     imagePath: "assets/images/FindJob.png",
                     bgColor: const Color(0xFFD9F1FF),
@@ -417,7 +451,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const JobsListScreen(),
+                          builder: (_) => const JobsListScreen(
+                            useRecommendations: false,
+                            initialJobType: "Remote",
+                          ),
                         ),
                       );
                     },
@@ -431,7 +468,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const JobsListScreen(),
+                                builder: (_) => const JobsListScreen(
+                                  useRecommendations: false,
+                                  initialJobType: "Full Time",
+                                ),
                               ),
                             );
                           },
@@ -442,19 +482,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: const Color(0xFFDCCEFF),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Column(
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "66.8k",
-                                  style: TextStyle(
+                                  fullTimeCount.toString(),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF1B1F3B),
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   "Full Time",
                                   style: TextStyle(
                                     fontSize: 13,
@@ -471,7 +511,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const JobsListScreen(),
+                                builder: (_) => const JobsListScreen(
+                                  useRecommendations: false,
+                                  initialJobType: "Part Time",
+                                ),
                               ),
                             );
                           },
@@ -482,19 +525,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: const Color(0xFFF5D9B4),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Column(
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "38.9k",
-                                  style: TextStyle(
+                                  partTimeCount.toString(),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF1B1F3B),
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   "Part Time",
                                   style: TextStyle(
                                     fontSize: 13,
@@ -517,7 +560,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const JobsListScreen(),
+                      builder: (_) => const JobsListScreen(
+                        useRecommendations: false,
+                        initialJobType: "All Jobs",
+                      ),
                     ),
                   );
                 },

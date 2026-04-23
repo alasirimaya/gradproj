@@ -28,18 +28,36 @@ class JobModel {
   });
 
   factory JobModel.fromJson(Map<String, dynamic> json) {
+    final descriptionText = (json['description'] ?? '').toString();
+
+    String extractFromDescription(String label) {
+      final regex = RegExp(
+        '$label\\s*:\\s*(.*)',
+        caseSensitive: false,
+        multiLine: true,
+      );
+      final match = regex.firstMatch(descriptionText);
+      return match != null ? (match.group(1) ?? '').trim() : '';
+    }
+
+    final extractedLocation = extractFromDescription('Location');
+    final extractedType = extractFromDescription('Employment Type');
+    final extractedWorkplace = extractFromDescription('Workplace');
+
     return JobModel(
       id: json['id'] ?? 0,
       title: (json['title'] ?? '').toString(),
       company: (json['company'] ?? '').toString(),
-      location: (json['location'] ?? '').toString(),
-      category: (json['category'] ?? '').toString(),
-      type: (json['type'] ?? '').toString(),
+      location: (json['location'] ?? extractedLocation).toString(),
+      category: (json['category'] ?? json['workplace'] ?? extractedWorkplace)
+          .toString(),
+      type: (json['type'] ?? json['employment_type'] ?? extractedType)
+          .toString(),
       position: (json['position'] ?? '').toString(),
       salary: (json['salary'] ?? '').toString(),
       timeAgo: (json['timeAgo'] ?? json['time_ago'] ?? '').toString(),
       logo: (json['logo'] ?? '').toString(),
-      description: (json['description'] ?? '').toString(),
+      description: descriptionText,
       skills: (json['skills'] ?? '').toString(),
     );
   }

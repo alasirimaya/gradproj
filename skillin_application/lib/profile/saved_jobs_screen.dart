@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../Jobs/jobs_list_screen.dart';
 import 'saved_jobs_provider.dart';
 
 class SavedJobsScreen extends StatefulWidget {
@@ -26,12 +27,75 @@ class _SavedJobsScreenState extends State<SavedJobsScreen> {
         iconTheme: const IconThemeData(color: Color(0xFF1B1F3B)),
       ),
       body: jobs.isEmpty
-          ? const Center(
-              child: Text(
-                "No saved jobs yet",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6A6F85),
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "assets/images/nosavedjobs.png",
+                      width: 220,
+                      height: 220,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.bookmark_border,
+                        size: 100,
+                        color: Color(0xFFB0B3C7),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      "No Savings",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1B1F3B),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "You don't have any jobs saved, please find it in search to save jobs",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF6A6F85),
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0F1F57),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const JobsListScreen(
+                                useRecommendations: false,
+                                initialJobType: "All Jobs",
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "FIND A JOB",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             )

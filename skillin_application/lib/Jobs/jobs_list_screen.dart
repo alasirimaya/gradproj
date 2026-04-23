@@ -222,7 +222,14 @@ import '../services/jobs_service.dart';
 import '../services/auth_service.dart';
 
 class JobsListScreen extends StatefulWidget {
-  const JobsListScreen({super.key});
+  final bool useRecommendations;
+  final String? initialJobType;
+
+  const JobsListScreen({
+    super.key,
+    this.useRecommendations = false,
+    this.initialJobType,
+  });
 
   @override
   State<JobsListScreen> createState() => _JobsListScreenState();
@@ -241,11 +248,12 @@ class _JobsListScreenState extends State<JobsListScreen> {
   final TextEditingController locationController =
       TextEditingController(text: "Riyadh, KSA");
 
-  String selectedJobType = "Full-time";
+  String selectedJobType = "All Jobs";
 
   @override
   void initState() {
     super.initState();
+    selectedJobType = widget.initialJobType ?? "All Jobs";
     fetchJobs();
     searchController.addListener(applyFilters);
   }
@@ -264,77 +272,136 @@ class _JobsListScreenState extends State<JobsListScreen> {
     });
 
     try {
-     final meResult = await AuthService.getMe().timeout(
-  const Duration(seconds: 8),
-);
+      if (widget.useRecommendations) {
+        final meResult = await AuthService.getMe().timeout(
+          const Duration(seconds: 8),
+        );
 
-      if (meResult["ok"] != true) {
-        setState(() {
-          isLoading = false;
-          errorMessage =
-              meResult["msg"]?.toString() ?? "Failed to load current user.";
-        });
-        return;
-      }
+        if (meResult["ok"] != true) {
+          setState(() {
+            isLoading = false;
+            errorMessage =
+                meResult["msg"]?.toString() ?? "Failed to load current user.";
+          });
+          return;
+        }
 
-      final Map<String, dynamic> meData =
-          Map<String, dynamic>.from(meResult["data"] as Map);
+        final Map<String, dynamic> meData =
+            Map<String, dynamic>.from(meResult["data"] as Map);
 
-      final int userId = meData["id"];
+        final int userId = meData["id"];
 
-      final response = await JobsService.getRecommendations(userId);
+        final response = await JobsService.getRecommendations(userId);
 
-      if (response["ok"] == true) {
-        final Map<String, dynamic> data =
-            Map<String, dynamic>.from(response["data"] as Map);
-        final List recommendations = data["recommendations"] ?? [];
+        if (response["ok"] == true) {
+          final Map<String, dynamic> data =
+              Map<String, dynamic>.from(response["data"] as Map);
+          final List recommendations = data["recommendations"] ?? [];
 
-        final List<JobModel> loadedJobs =
-            recommendations.map<JobModel>((rec) {
-          final map = Map<String, dynamic>.from(rec as Map);
+          final List<JobModel> loadedJobs = recommendations.map<JobModel>((rec) {
+            final map = Map<String, dynamic>.from(rec as Map);
 
-          return JobModel(
-            id: map["job_id"] ?? 0,
-            title: (map["title"] ?? "").toString(),
-            company: (map["company"] ?? "").toString(),
-            location: "Riyadh, KSA",
-            category: "General",
-            type: "Full Time",
-            position: "",
-            salary: "",
-            timeAgo: "1 day ago",
-            logo: "",
-            description: "",
-            skills: "",
-          );
-        }).toList();
+            return JobModel(
+              id: map["job_id"] ?? 0,
+              title: (map["title"] ?? "").toString(),
+              company: (map["company"] ?? "").toString(),
+              location: (map["location"] ?? "Riyadh, KSA").toString(),
+              category: (map["workplace"] ?? "General").toString(),
+              type: (map["employment_type"] ?? "Full Time").toString(),
+              position: "",
+              salary: "",
+              timeAgo: "1 day ago",
+              logo: "",
+              description: "",
+              skills: "",
+            );
+          }).toList();
 
-        final List<double> loadedSimilarities =
-            recommendations.map<double>((rec) {
-          final map = Map<String, dynamic>.from(rec as Map);
-          return ((map["similarity"] ?? 0) as num).toDouble();
-        }).toList();
+          final List<double> loadedSimilarities =
+              recommendations.map<double>((rec) {
+            final map = Map<String, dynamic>.from(rec as Map);
+            return ((map["similarity"] ?? 0) as num).toDouble();
+          }).toList();
 
-        setState(() {
-          allJobs = loadedJobs;
-          filteredJobs = List.from(loadedJobs);
-          allSimilarities = loadedSimilarities;
-          filteredSimilarities = List.from(loadedSimilarities);
-          isLoading = false;
-        });
+          setState(() {
+            allJobs = loadedJobs;
+            allSimilarities = loadedSimilarities;
+            isLoading = false;
+          });
+
+          applyFilters();
+        } else {
+          setState(() {
+            isLoading = false;
+            errorMessage =
+                response["msg"]?.toString() ?? "Failed to load recommendations.";
+          });
+        }
       } else {
-        setState(() {
-          isLoading = false;
-          errorMessage =
-              response["msg"]?.toString() ?? "Failed to load recommendations";
-        });
+        final response = await JobsService.getJobs();
+
+        if (response["ok"] == true) {
+          final List data = response["data"] as List;
+
+          final List<JobModel> loadedJobs = data
+              .map((job) => JobModel.fromJson(Map<String, dynamic>.from(job)))
+              .toList();
+
+          setState(() {
+            allJobs = loadedJobs;
+            allSimilarities = List.generate(loadedJobs.length, (_) => 0);
+            isLoading = false;
+          });
+
+          applyFilters();
+        } else {
+          setState(() {
+            isLoading = false;
+            errorMessage =
+                response["msg"]?.toString() ?? "Failed to load jobs.";
+          });
+        }
       }
     } catch (e) {
       setState(() {
         isLoading = false;
-       errorMessage = "Something went wrong: $e";
+        errorMessage = "Something went wrong: $e";
       });
     }
+  }
+
+  bool _matchesJobType(JobModel job) {
+    if (selectedJobType == "All Jobs") return true;
+
+    final type = job.type.toLowerCase().replaceAll("-", " ").trim();
+    final workplace = job.category.toLowerCase().trim();
+    final selected = selectedJobType.toLowerCase().replaceAll("-", " ").trim();
+
+    if (selected == "full time") {
+      return type == "full time";
+    }
+
+    if (selected == "part time") {
+      return type == "part time";
+    }
+
+    if (selected == "remote") {
+      return workplace == "remote" || type == "remote";
+    }
+
+    return true;
+  }
+
+  bool _matchesLocation(JobModel job) {
+    final locationQuery = locationController.text.trim().toLowerCase();
+
+    if (locationQuery.isEmpty ||
+        locationQuery == "riyadh, ksa" ||
+        locationQuery == "any location") {
+      return true;
+    }
+
+    return job.location.toLowerCase().contains(locationQuery);
   }
 
   void applyFilters() {
@@ -345,13 +412,18 @@ class _JobsListScreenState extends State<JobsListScreen> {
 
     for (int i = 0; i < allJobs.length; i++) {
       final job = allJobs[i];
-      final similarity = allSimilarities[i];
+      final similarity = i < allSimilarities.length ? allSimilarities[i] : 0.0;
 
       final matchesQuery =
+          query.isEmpty ||
           job.title.toLowerCase().contains(query) ||
-          job.company.toLowerCase().contains(query);
+          job.company.toLowerCase().contains(query) ||
+          job.skills.toLowerCase().contains(query);
 
-      if (matchesQuery) {
+      final matchesType = _matchesJobType(job);
+      final matchesLocation = _matchesLocation(job);
+
+      if (matchesQuery && matchesType && matchesLocation) {
         newFilteredJobs.add(job);
         newFilteredSimilarities.add(similarity);
       }
@@ -379,6 +451,7 @@ class _JobsListScreenState extends State<JobsListScreen> {
         selectedJobType = result["jobType"] ?? selectedJobType;
         locationController.text = result["location"] ?? locationController.text;
       });
+      applyFilters();
     }
   }
 
@@ -409,9 +482,12 @@ class _JobsListScreenState extends State<JobsListScreen> {
                 Expanded(
                   child: TextField(
                     controller: searchController,
-                    decoration: const InputDecoration(
-                      hintText: "Search recommended jobs...",
-                      hintStyle: TextStyle(color: Color(0xFFB5B8C7)),
+                    onChanged: (_) => applyFilters(),
+                    decoration: InputDecoration(
+                      hintText: widget.useRecommendations
+                          ? "Search recommended jobs..."
+                          : "Search jobs...",
+                      hintStyle: const TextStyle(color: Color(0xFFB5B8C7)),
                       border: InputBorder.none,
                     ),
                   ),
@@ -434,6 +510,7 @@ class _JobsListScreenState extends State<JobsListScreen> {
                 Expanded(
                   child: TextField(
                     controller: locationController,
+                    onChanged: (_) => applyFilters(),
                     decoration: const InputDecoration(
                       hintText: "Riyadh, KSA",
                       hintStyle: TextStyle(color: Color(0xFFB5B8C7)),
@@ -496,11 +573,13 @@ class _JobsListScreenState extends State<JobsListScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        _chip("Recommended"),
-        const SizedBox(width: 10),
-        _chip("Top Match"),
+        _chip(widget.useRecommendations ? "Recommended" : "All Jobs"),
         const SizedBox(width: 10),
         _chip(selectedJobType),
+        const SizedBox(width: 10),
+        _chip(locationController.text.isEmpty
+            ? "Any Location"
+            : locationController.text),
       ],
     );
   }
@@ -523,21 +602,25 @@ class _JobsListScreenState extends State<JobsListScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "No recommendations found",
-              style: TextStyle(
+            Text(
+              widget.useRecommendations
+                  ? "No recommendations found"
+                  : "No jobs found",
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1B1F3B),
               ),
             ),
             const SizedBox(height: 10),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                "We could not find matching jobs right now. Try again later or adjust your search.",
+                widget.useRecommendations
+                    ? "We could not find matching jobs right now. Try again later or adjust your search."
+                    : "No matching jobs were found. Try changing your search or filters.",
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Color(0xFF6A6F85),
                   fontSize: 14,
                   height: 1.5,
@@ -550,9 +633,9 @@ class _JobsListScreenState extends State<JobsListScreen> {
     );
   }
 
- Color _matchColor(double similarity) {
-  return const Color(0xFF0F1F57);
-}
+  Color _matchColor(double similarity) {
+    return const Color(0xFF0F1F57);
+  }
 
   IconData _matchIcon(double similarity) {
     if (similarity >= 0.75) return Icons.star;
@@ -600,7 +683,9 @@ class _JobsListScreenState extends State<JobsListScreen> {
                                   final similarity = filteredSimilarities[index];
                                   final matchPercent =
                                       (similarity * 100).toStringAsFixed(0);
-                                  final matchColor = _matchColor(similarity);
+                                  final showMatch =
+                                      widget.useRecommendations &&
+                                      filteredSimilarities.isNotEmpty;
 
                                   return Column(
                                     crossAxisAlignment:
@@ -608,9 +693,15 @@ class _JobsListScreenState extends State<JobsListScreen> {
                                     children: [
                                       JobCard(
                                         job: job,
-                                        location: "Riyadh, KSA",
-                                        jobType: "Full Time",
-                                        timeAgo: "1 day ago",
+                                        location: job.location.isEmpty
+                                            ? "Riyadh, KSA"
+                                            : job.location,
+                                        jobType: job.type.isEmpty
+                                            ? "Full Time"
+                                            : job.type,
+                                        timeAgo: job.timeAgo.isEmpty
+                                            ? "1 day ago"
+                                            : job.timeAgo,
                                         onTap: () {
                                           Navigator.push(
                                             context,
@@ -622,52 +713,53 @@ class _JobsListScreenState extends State<JobsListScreen> {
                                           );
                                         },
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          12,
-                                          0,
-                                          12,
-                                          14,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  _matchIcon(similarity),
-                                                  size: 18,
-                                                  color: matchColor,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  "Match: $matchPercent%",
-                                                  style: TextStyle(
-                                                    color: matchColor,
-                                                    fontWeight: FontWeight.w700,
+                                      if (showMatch)
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                            12,
+                                            0,
+                                            12,
+                                            14,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    _matchIcon(similarity),
+                                                    size: 18,
+                                                    color: _matchColor(similarity),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    "Match: $matchPercent%",
+                                                    style: TextStyle(
+                                                      color: _matchColor(similarity),
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 6),
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: LinearProgressIndicator(
+                                                  value: similarity,
+                                                  minHeight: 8,
+                                                  backgroundColor:
+                                                      Colors.grey.shade300,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<Color>(
+                                                    _matchColor(similarity),
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 6),
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              child: LinearProgressIndicator(
-                                                value: similarity,
-                                                minHeight: 8,
-                                                backgroundColor:
-                                                    Colors.grey.shade300,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<Color>(
-                                                  matchColor,
-                                                ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
                                     ],
                                   );
                                 },

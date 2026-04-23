@@ -72,3 +72,19 @@ class Application(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "job_id", name="unique_application"),
     )
+
+
+class UserEmbedding(Base):
+    __tablename__ = "user_embeddings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    embedding = Column(Text, nullable=False)
+
+
+class JobEmbedding(Base):
+    __tablename__ = "job_embeddings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id"), unique=True, nullable=False)
+    embedding = Column(Text, nullable=False)
