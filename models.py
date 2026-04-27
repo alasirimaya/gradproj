@@ -15,6 +15,13 @@ class User(Base):
     skills = relationship("UserSkill", back_populates="user")
     applications = relationship("Application", back_populates="user")
 
+    embedding_data = relationship(
+        "UserEmbedding",
+        uselist=False,
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -31,6 +38,13 @@ class Job(Base):
     skills = Column(Text, default="")
 
     applications = relationship("Application", back_populates="job")
+
+    embedding_data = relationship(
+        "JobEmbedding",
+        uselist=False,
+        back_populates="job",
+        cascade="all, delete-orphan",
+    )
 
 
 class Skill(Base):
@@ -81,6 +95,8 @@ class UserEmbedding(Base):
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
     embedding = Column(Text, nullable=False)
 
+    user = relationship("User", back_populates="embedding_data")
+
 
 class JobEmbedding(Base):
     __tablename__ = "job_embeddings"
@@ -88,3 +104,5 @@ class JobEmbedding(Base):
     id = Column(Integer, primary_key=True, index=True)
     job_id = Column(Integer, ForeignKey("jobs.id"), unique=True, nullable=False)
     embedding = Column(Text, nullable=False)
+
+    job = relationship("Job", back_populates="embedding_data")
