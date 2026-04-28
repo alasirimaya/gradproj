@@ -213,7 +213,8 @@ class _JobsListScreenState extends State<JobsListScreen> {
     );
   }
 }
-*/import 'package:flutter/material.dart';
+*/
+import 'package:flutter/material.dart';
 import 'filter_screen.dart';
 import 'job_card.dart';
 import 'job_details_screen.dart';
