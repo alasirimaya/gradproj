@@ -23,34 +23,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    futureApplications = ApplicationService.fetchApplications();
+    futureApplications = _loadApplications();
     _loadUser();
   }
 
-  Future<void> _loadUser() async {
-  final me = await AuthService.getMe();
+  Future<List<ApplicationModel>> _loadApplications() async {
+    final me = await AuthService.getMe();
 
-  if (me["ok"] == true) {
+    if (me["ok"] != true) {
+      return [];
+    }
+
     final Map<String, dynamic> data =
         Map<String, dynamic>.from(me["data"] as Map);
 
     final int userId = data["id"];
 
-    final savedCity = await ProfileLocalService.getCity(userId);
-    final savedCountry = await ProfileLocalService.getCountry(userId);
+    return await ApplicationService.fetchApplicationsByUser(userId);
+  }
 
-    if (mounted) {
-      setState(() {
-        userName = (data["full_name"] ?? "").toString().isEmpty
-            ? "User"
-            : data["full_name"];
-        userEmail = (data["email"] ?? "").toString();
-        city = savedCity;
-        country = savedCountry;
-      });
+  Future<void> _refreshApplications() async {
+    setState(() {
+      futureApplications = _loadApplications();
+    });
+  }
+
+  Future<void> _loadUser() async {
+    final me = await AuthService.getMe();
+
+    if (me["ok"] == true) {
+      final Map<String, dynamic> data =
+          Map<String, dynamic>.from(me["data"] as Map);
+
+      final int userId = data["id"];
+
+      final savedCity = await ProfileLocalService.getCity(userId);
+      final savedCountry = await ProfileLocalService.getCountry(userId);
+
+      if (mounted) {
+        setState(() {
+          userName = (data["full_name"] ?? "").toString().isEmpty
+              ? "User"
+              : data["full_name"];
+          userEmail = (data["email"] ?? "").toString();
+          city = savedCity;
+          country = savedCountry;
+        });
+      }
     }
   }
-}
 
   Future<void> _openEditProfile() async {
     await Navigator.push(
@@ -61,6 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     await _loadUser();
+    await _refreshApplications();
   }
 
   @override
@@ -93,131 +115,136 @@ class _DashboardScreenState extends State<DashboardScreen> {
             final reviewing =
                 applications.where((e) => e.status == "Under Review").length;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeaderCard(),
-                  const SizedBox(height: 24),
+            return RefreshIndicator(
+              onRefresh: _refreshApplications,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeaderCard(),
+                    const SizedBox(height: 24),
 
-                  const Text(
-                    "Application Tracker",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1B1F3B),
+                    const Text(
+                      "Application Tracker",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1B1F3B),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
+                    const SizedBox(height: 14),
 
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 1.15,
-                    children: [
-                      _TrackerCard(
-                        title: "Applied Jobs",
-                        value: applied.toString(),
-                        icon: Icons.bar_chart_rounded,
-                        isPrimary: true,
-                      ),
-                      _TrackerCard(
-                        title: "Accepted",
-                        value: accepted.toString(),icon: Icons.work_outline_rounded,
-                      ),
-                      _TrackerCard(
-                        title: "Rejected",
-                        value: rejected.toString(),
-                        icon: Icons.person_outline_rounded,
-                      ),
-                      _TrackerCard(
-                        title: "Under Review",
-                        value: reviewing.toString(),
-                        icon: Icons.hourglass_empty_rounded,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  const Text(
-                    "Your Applications",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1B1F3B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  if (applications.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "No applications yet",
-                          style: TextStyle(fontSize: 15),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 1.15,
+                      children: [
+                        _TrackerCard(
+                          title: "Applied Jobs",
+                          value: applied.toString(),
+                          icon: Icons.bar_chart_rounded,
+                          isPrimary: true,
                         ),
+                        _TrackerCard(
+                          title: "Accepted",
+                          value: accepted.toString(),
+                          icon: Icons.work_outline_rounded,
+                        ),
+                        _TrackerCard(
+                          title: "Rejected",
+                          value: rejected.toString(),
+                          icon: Icons.person_outline_rounded,
+                        ),
+                        _TrackerCard(
+                          title: "Under Review",
+                          value: reviewing.toString(),
+                          icon: Icons.hourglass_empty_rounded,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    const Text(
+                      "Your Applications",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1B1F3B),
                       ),
-                    )
-                  else
-                    ...applications.map(
-                      (app) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
+                    ),
+                    const SizedBox(height: 12),
+
+                    if (applications.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(18),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x11000000),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                        child: const Center(
+                          child: Text(
+                            "No applications yet",
+                            style: TextStyle(fontSize: 15),
                           ),
-                          title: Text(
-                            app.jobTitle,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                            ),
+                        ),
+                      )
+                    else
+                      ...applications.map(
+                        (app) => Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x11000000),
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          subtitle: Text(app.company),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
-                            decoration: BoxDecoration(
-                              color: statusBgColor(app.status),
-                              borderRadius: BorderRadius.circular(14),
+                            title: Text(
+                              app.jobTitle,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            child: Text(
-                              app.status,
-                              style: TextStyle(
-                                color: statusColor(app.status),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                            subtitle: Text(app.company),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusBgColor(app.status),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                app.status,
+                                style: TextStyle(
+                                  color: statusColor(app.status),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             );
           },
@@ -237,7 +264,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       locationText = country;
     }
 
-    return Container(width: double.infinity,
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
@@ -294,7 +322,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
           const SizedBox(height: 18),
-          
           Row(
             children: [
               const _SmallActionButton("Dashboard"),
@@ -349,7 +376,8 @@ class _TrackerCard extends StatelessWidget {
                   offset: Offset(0, 8),
                 )
               ]
-            : null,),
+            : null,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

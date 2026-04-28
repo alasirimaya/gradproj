@@ -19,6 +19,7 @@ async def apply_job(
     db: Session = Depends(get_db),
 ):
     job = db.query(Job).filter(Job.id == job_id).first()
+
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
@@ -80,9 +81,10 @@ def get_all_applications(db: Session = Depends(get_db)):
             "applicant_email": user.email if user else "No Email",
             "job_title": job.title if job else "Unknown Job",
             "company": job.company if job else "Unknown Company",
-            "status": getattr(app, "status", "Under Review"),
-            "info": getattr(app, "info", ""),
-            "cv_filename": getattr(app, "cv_filename", ""),
+            "status": app.status,
+            "info": app.info,
+            "cv_filename": app.cv_filename,
+            "created_at": str(app.created_at),
         })
 
     return results
@@ -105,9 +107,10 @@ def get_user_applications(user_id: int, db: Session = Depends(get_db)):
             "user_id": app.user_id,
             "job_title": job.title if job else "Unknown Job",
             "company": job.company if job else "Unknown Company",
-            "status": getattr(app, "status", "Under Review"),
-            "info": getattr(app, "info", ""),
-            "cv_filename": getattr(app, "cv_filename", ""),
+            "status": app.status,
+            "info": app.info,
+            "cv_filename": app.cv_filename,
+            "created_at": str(app.created_at),
         })
 
     return results
@@ -133,10 +136,39 @@ def get_job_applications(job_id: int, db: Session = Depends(get_db)):
             "applicant_email": user.email if user else "No Email",
             "job_title": job.title if job else "Unknown Job",
             "company": job.company if job else "Unknown Company",
-            "status": getattr(app, "status", "Under Review"),
-            "info": getattr(app, "info", ""),
-            "cv_filename": getattr(app, "cv_filename", ""),
+            "status": app.status,
+            "info": app.info,
+            "cv_filename": app.cv_filename,
             "created_at": str(app.created_at),
         })
 
     return results
+
+
+@router.put("/{application_id}/status")
+def update_application_status(
+    application_id: int,
+    status: str,
+    db: Session = Depends(get_db),
+):
+    application = db.query(Application).filter(
+        Application.id == application_id
+    ).first()
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    if status not in ["Accepted", "Rejected", "Under Review"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    application.status = status
+
+    db.commit()
+    db.refresh(application)
+
+    return {
+        "ok": True,
+        "message": "Application status updated successfully",
+        "application_id": application.id,
+        "status": application.status,
+    }

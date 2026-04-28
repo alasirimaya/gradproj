@@ -40,23 +40,27 @@ class ApplicationService {
 
   static final List<ApplicationModel> _localApplications = [];
 
-  static Future<List<ApplicationModel>> fetchApplications() async {
+  static Future<List<ApplicationModel>> fetchApplicationsByUser(
+    int userId,
+  ) async {
     try {
       final response = await http.get(
-        Uri.parse("$baseUrl/applications/"),
+        Uri.parse("$baseUrl/applications/user/$userId"),
       );
 
       if (response.statusCode == 200) {
         List data = jsonDecode(response.body);
 
-        final apiApplications =
-            data.map((json) => ApplicationModel.fromJson(json)).toList();
+        final apiApplications = data
+            .map((json) => ApplicationModel.fromJson(json))
+            .toList();
 
         return [..._localApplications, ...apiApplications];
       } else {
         return [..._localApplications];
       }
-    } catch (_) {
+    } catch (e) {
+      print("FETCH APPLICATIONS ERROR: $e");
       return [..._localApplications];
     }
   }
@@ -103,6 +107,37 @@ class ApplicationService {
       return {
         "ok": false,
         "msg": "Failed to submit application: $e",
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateApplicationStatus({
+    required int applicationId,
+    required String status,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse(
+          "$baseUrl/applications/$applicationId/status?status=$status",
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          "ok": true,
+          "data": jsonDecode(response.body),
+        };
+      }
+
+      return {
+        "ok": false,
+        "msg": response.body,
+        "status": response.statusCode,
+      };
+    } catch (e) {
+      return {
+        "ok": false,
+        "msg": "Failed to update status: $e",
       };
     }
   }
