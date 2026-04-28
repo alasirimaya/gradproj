@@ -91,7 +91,12 @@ class Application(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     job_id = Column(Integer, ForeignKey("jobs.id"))
-    status = Column(String(30), default="applied")
+
+    status = Column(String(30), default="Under Review")
+    info = Column(Text, default="")
+    cv_filename = Column(String(255), default="")
+    cv_data = Column(Text, default="")
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="applications")
@@ -100,7 +105,6 @@ class Application(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "job_id", name="unique_application"),
     )
-
 
 class UserEmbedding(Base):
     __tablename__ = "user_embeddings"

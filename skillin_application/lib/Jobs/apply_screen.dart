@@ -308,10 +308,11 @@ class _ApplyScreenState extends State<ApplyScreen> {
   }
 }
 */
-import 'package:skillin_application/models/application_model.dart';
-import 'package:skillin_application/services/application_service.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:skillin_application/models/application_model.dart';
+import 'package:skillin_application/services/application_service.dart';
+import 'package:skillin_application/services/auth_service.dart';
 import 'job_model.dart';
 import 'success_screen.dart';
 
@@ -326,6 +327,10 @@ class ApplyScreen extends StatefulWidget {
 
 class _ApplyScreenState extends State<ApplyScreen> {
   String? uploadedFileName;
+  String? uploadedFilePath;
+
+  bool isSubmitting = false;
+
   final TextEditingController infoController = TextEditingController();
 
   Future<void> pickCV() async {
@@ -334,34 +339,82 @@ class _ApplyScreenState extends State<ApplyScreen> {
       allowedExtensions: ['pdf', 'doc', 'docx'],
     );
 
-    if (result != null) {
+    if (result != null && result.files.single.path != null) {
       setState(() {
         uploadedFileName = result.files.single.name;
+        uploadedFilePath = result.files.single.path;
       });
     }
   }
 
-  void submitApplication() {
-    ApplicationService.addLocalApplication(
-      
-    ApplicationModel(
-      jobTitle: widget.job.title,
-        company: widget.job.company,
-      status: "Under Review",
-     ),
-       
-);
-    
+  Future<void> submitApplication() async {
+    if (uploadedFilePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please upload your CV first.")),
+      );
+      return;
+    }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SuccessScreen(
-          job: widget.job,
-          fileName: uploadedFileName ?? "CV.pdf",
-        ),
-      ),
+    setState(() {
+      isSubmitting = true;
+    });
+
+    final me = await AuthService.getMe();
+
+    if (me["ok"] != true) {
+      setState(() {
+        isSubmitting = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not find current user.")),
+      );
+      return;
+    }
+
+    final userData = Map<String, dynamic>.from(me["data"]);
+    final int userId = userData["id"];
+
+    final result = await ApplicationService.applyToJob(
+      jobId: widget.job.id,
+      userId: userId,
+      info: infoController.text.trim(),
+      cvPath: uploadedFilePath!,
     );
+
+    if (!mounted) return;
+
+    setState(() {
+      isSubmitting = false;
+    });
+
+    if (result["ok"] == true) {
+      ApplicationService.addLocalApplication(
+        ApplicationModel(
+          jobTitle: widget.job.title,
+          company: widget.job.company,
+          status: "Under Review",
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SuccessScreen(
+            job: widget.job,
+            fileName: uploadedFileName ?? "CV.pdf",
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            (result["msg"] ?? "Failed to submit application.").toString(),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -436,38 +489,26 @@ class _ApplyScreenState extends State<ApplyScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Flexible(
                               child: Text(
-                                "Google",
-                                style: TextStyle(
+                                widget.job.company,
+                                style: const TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF1B1F3B),
                                 ),
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Text("•"),
-                            SizedBox(width: 8),
-                            Flexible(
+                            const SizedBox(width: 8),
+                            const Text("•"),
+                            const SizedBox(width: 8),
+                            const Flexible(
                               child: Text(
                                 "Riyadh",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF1B1F3B),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Text("•"),
-                            SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                "1 day ago",
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF1B1F3B),
@@ -521,7 +562,6 @@ class _ApplyScreenState extends State<ApplyScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: const Color(0xFFD7D8E2),
-                                    style: BorderStyle.solid,
                                   ),
                                 ),
                                 child: Row(
@@ -595,15 +635,17 @@ class _ApplyScreenState extends State<ApplyScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: submitApplication,
-                  child: const Text(
-                    "APPLY NOW",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
+                  onPressed: isSubmitting ? null : submitApplication,
+                  child: isSubmitting
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "APPLY NOW",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ),

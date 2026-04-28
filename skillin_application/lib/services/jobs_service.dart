@@ -5,6 +5,9 @@ class JobsService {
   static const String _baseUrl = "http://127.0.0.1:8000";
   static final ApiClient _api = ApiClient(baseUrl: _baseUrl);
 
+  // =========================
+  // Get All Jobs
+  // =========================
   static Future<Map<String, dynamic>> getJobs() async {
     try {
       final data = await _api.getJson<List<dynamic>>(
@@ -12,14 +15,25 @@ class JobsService {
         parser: (json) => (json as List).cast<dynamic>(),
       );
 
-      return {"ok": true, "data": data};
+      return {
+        "ok": true,
+        "data": data,
+      };
     } catch (e) {
       final msg = e is AppError ? e.message : "Failed to load jobs.";
       final status = e is AppError ? e.statusCode : null;
-      return {"ok": false, "msg": msg, "status": status};
+
+      return {
+        "ok": false,
+        "msg": msg,
+        "status": status,
+      };
     }
   }
 
+  // =========================
+  // Get Single Job By ID
+  // =========================
   static Future<Map<String, dynamic>> getJobById(int id) async {
     try {
       final data = await _api.getJson<Map<String, dynamic>>(
@@ -27,14 +41,25 @@ class JobsService {
         parser: (json) => (json as Map).cast<String, dynamic>(),
       );
 
-      return {"ok": true, "data": data};
+      return {
+        "ok": true,
+        "data": data,
+      };
     } catch (e) {
       final msg = e is AppError ? e.message : "Failed to load job.";
       final status = e is AppError ? e.statusCode : null;
-      return {"ok": false, "msg": msg, "status": status};
+
+      return {
+        "ok": false,
+        "msg": msg,
+        "status": status,
+      };
     }
   }
 
+  // =========================
+  // Get Recommendations
+  // =========================
   static Future<Map<String, dynamic>> getRecommendations(int userId) async {
     try {
       final data = await _api.getJson<Map<String, dynamic>>(
@@ -42,15 +67,26 @@ class JobsService {
         parser: (json) => (json as Map).cast<String, dynamic>(),
       );
 
-      return {"ok": true, "data": data};
+      return {
+        "ok": true,
+        "data": data,
+      };
     } catch (e) {
       final msg =
           e is AppError ? e.message : "Failed to load recommendations.";
       final status = e is AppError ? e.statusCode : null;
-      return {"ok": false, "msg": msg, "status": status};
+
+      return {
+        "ok": false,
+        "msg": msg,
+        "status": status,
+      };
     }
   }
 
+  // =========================
+  // Create New Job (HR)
+  // =========================
   static Future<Map<String, dynamic>> createJob({
     required String title,
     required String company,
@@ -73,11 +109,45 @@ class JobsService {
         parser: (json) => (json as Map).cast<String, dynamic>(),
       );
 
-      return {"ok": true, "data": data};
+      return {
+        "ok": true,
+        "data": data,
+      };
     } catch (e) {
       final msg = e is AppError ? e.message : "Failed to create job.";
       final status = e is AppError ? e.statusCode : null;
-      return {"ok": false, "msg": msg, "status": status};
+
+      return {
+        "ok": false,
+        "msg": msg,
+        "status": status,
+      };
+    }
+  }
+
+  // =========================
+  // Get Applicants By Job ID (HR)
+  // =========================
+  static Future<Map<String, dynamic>> getApplicantsByJobId(int jobId) async {
+    try {
+      final data = await _api.getJson<List<dynamic>>(
+        "/api/v1/applications/job/$jobId",
+        parser: (json) => (json as List).cast<dynamic>(),
+      );
+
+      return {
+        "ok": true,
+        "data": data,
+      };
+    } catch (e) {
+      final msg = e is AppError ? e.message : "Failed to load applicants.";
+      final status = e is AppError ? e.statusCode : null;
+
+      return {
+        "ok": false,
+        "msg": msg,
+        "status": status,
+      };
     }
   }
 }
