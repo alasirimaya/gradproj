@@ -42,6 +42,7 @@ class AuthService {
     required String fullName,
     required String email,
     required String password,
+    required String role,
   }) async {
     try {
       await _api.postJson(
@@ -50,6 +51,7 @@ class AuthService {
           "full_name": fullName.trim(),
           "email": email.trim(),
           "password": password,
+          "role": role,
         },
       );
 
@@ -76,11 +78,13 @@ class AuthService {
 
       return {
         "ok": true,
-        "msg": data["message"] ?? "If this email exists, a reset link has been sent."
+        "msg":
+            data["message"] ?? "If this email exists, a reset link has been sent.",
       };
     } catch (e) {
       print("FORGOT PASSWORD ERROR: $e");
-      final msg = e is AppError ? e.message : "Forgot password request failed: $e";
+      final msg =
+          e is AppError ? e.message : "Forgot password request failed: $e";
       final status = e is AppError ? e.statusCode : null;
       return {"ok": false, "msg": msg, "status": status};
     }
@@ -139,35 +143,25 @@ class AuthService {
   static Future<void> logout() async {
     await _storage.delete(key: _tokenKey);
   }
+
   static Future<List<dynamic>> getCandidates() async {
+    final token = await getToken();
 
-  final token = await getToken();
+    if (token == null || token.isEmpty) {
+      return [];
+    }
 
-  if (token == null || token.isEmpty) {
-    return [];
+    try {
+      final data = await _api.getJson<List<dynamic>>(
+        "/api/v1/users/personal",
+        token: token,
+        parser: (json) => (json as List).cast<dynamic>(),
+      );
+
+      return data;
+    } catch (e) {
+      print("GET CANDIDATES ERROR: $e");
+      return [];
+    }
   }
-
-  try {
-
-    final data = await _api.getJson<List<dynamic>>(
-
-      "/api/v1/users/personal",
-
-      token: token,
-
-      parser: (json) => (json as List).cast<dynamic>(),
-
-    );
-
-    return data;
-
-  } catch (e) {
-
-    print("GET CANDIDATES ERROR: $e");
-
-    return [];
-
-  }
-
-}
 }

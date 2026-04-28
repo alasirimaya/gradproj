@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:skillin_application/auth/auth_gate.dart';
 import 'package:skillin_application/auth/login_screen.dart';
 import 'package:skillin_application/services/auth_service.dart';
-import 'package:skillin_application/services/user_role_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -30,11 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _selectRole(String role) {
     setState(() {
-      if (selectedRole == role) {
-        selectedRole = null;
-      } else {
-        selectedRole = role;
-      }
+      selectedRole = selectedRole == role ? null : role;
     });
   }
 
@@ -86,6 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       fullName: name,
       email: email,
       password: password,
+      role: selectedRole!,
     );
 
     if (!mounted) return;
@@ -95,9 +91,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     if (result["ok"] == true) {
-       await UserRoleService.saveRoleForEmail(email, selectedRole!);
-       await UserRoleService.setCurrentRole(selectedRole!);
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const AuthGate()),
@@ -363,7 +356,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               children: [
                 SizedBox(height: MediaQuery.of(context).padding.top + 20),
-
                 Transform.translate(
                   offset: const Offset(0, -20),
                   child: Center(
@@ -376,9 +368,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-
                 SizedBox(height: topSectionHeight - 130),
-
                 Transform.translate(
                   offset: Offset(0, -formTopOverlap),
                   child: Container(
@@ -396,7 +386,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 8),
-
                           const Center(
                             child: Text(
                               'Welcome !',
@@ -407,9 +396,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 14),
-
                           const Text(
                             'Who are you? Choose your role to continue.',
                             textAlign: TextAlign.center,
@@ -419,48 +406,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
                           Row(
                             children: [
                               Expanded(
                                 child: _buildRoleCard(
                                   role: 'personal',
-                                  imagePath:
-                                      'assets/images/personal_button.png',
+                                  imagePath: 'assets/images/personal_button.png',
                                 ),
                               ),
                               const SizedBox(width: 14),
                               Expanded(
                                 child: _buildRoleCard(
                                   role: 'business',
-                                  imagePath:
-                                      'assets/images/business_button.png',
+                                  imagePath: 'assets/images/business_button.png',
                                 ),
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 28),
-
                           _buildInputField(
                             label: 'Name',
                             controller: _nameController,
                             textInputAction: TextInputAction.next,
                           ),
-
                           const SizedBox(height: 18),
-
                           _buildInputField(
                             label: 'Email',
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                           ),
-
                           const SizedBox(height: 18),
-
                           _buildInputField(
                             label: 'Password',
                             controller: _passwordController,
@@ -470,7 +447,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (!_isLoading) _handleRegister();
                             },
                           ),
-
                           if (_errorMessage != null) ...[
                             const SizedBox(height: 14),
                             Text(
@@ -483,17 +459,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           ],
-
                           const SizedBox(height: 24),
-
                           _buildPrimaryButton(
                             text: 'Sign up',
                             isLoading: _isLoading,
                             onTap: _isLoading ? null : _handleRegister,
                           ),
-
                           const SizedBox(height: 28),
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -528,7 +500,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 36),
                         ],
                       ),

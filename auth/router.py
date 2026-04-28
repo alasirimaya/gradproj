@@ -34,14 +34,21 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
         full_name=payload.full_name,
         email=payload.email,
         hashed_password=hash_password(payload.password),
+        role=payload.role,
     )
+
     db.add(user)
     db.commit()
     db.refresh(user)
 
     save_user_embedding(db, user)
 
-    return MeResponse(id=user.id, full_name=user.full_name, email=user.email)
+    return MeResponse(
+        id=user.id,
+        full_name=user.full_name,
+        email=user.email,
+        role=user.role,
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -70,6 +77,7 @@ def get_current_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+
     return user
 
 
@@ -79,6 +87,7 @@ def me(current_user: User = Depends(get_current_user)):
         id=current_user.id,
         full_name=current_user.full_name,
         email=current_user.email,
+        role=current_user.role,
     )
 
 

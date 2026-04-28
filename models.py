@@ -12,6 +12,8 @@ class User(Base):
     email = Column(String(120), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
 
+    role = Column(String(30), default="personal")
+
     skills = relationship("UserSkill", back_populates="user")
     applications = relationship("Application", back_populates="user")
 
