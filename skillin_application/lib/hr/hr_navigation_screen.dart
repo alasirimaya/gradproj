@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:skillin_application/hr/hr_home_screen.dart';
 import 'package:skillin_application/hr/add_job_screen.dart';
 import 'package:skillin_application/hr/hr_posted_jobs_screen.dart';
-import 'package:skillin_application/profile/profile_screen.dart';
+import 'package:skillin_application/hr/hr_profile_screen.dart';
 
 class HrNavigationScreen extends StatefulWidget {
   const HrNavigationScreen({super.key});
@@ -14,11 +14,11 @@ class HrNavigationScreen extends StatefulWidget {
 class _HrNavigationScreenState extends State<HrNavigationScreen> {
   int currentIndex = 0;
 
-  late final List<Widget> screens = [
-    const HrHomeScreen(),
-    const HrPostedJobsScreen(),
-    const ProfileScreen(),
-  ];
+  List<Widget> get screens => const [
+        HrHomeScreen(),
+        HrPostedJobsScreen(),
+        HrProfileScreen(),
+      ];
 
   Future<void> _openAddJob() async {
     await Navigator.push(

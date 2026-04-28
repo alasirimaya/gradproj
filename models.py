@@ -21,7 +21,19 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+class HrProfile(Base):
+    __tablename__ = "hr_profiles"
 
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+
+    profile_picture = Column(Text, default="")
+    full_name = Column(String(120), default="")
+    job_title = Column(String(120), default="")
+    work_email = Column(String(120), default="")
+    phone_number = Column(String(50), default="")
+    office_location = Column(String(150), default="")
+    bio = Column(Text, default="")
 
 class Job(Base):
     __tablename__ = "jobs"
