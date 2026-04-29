@@ -30,7 +30,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _resumeController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
-
+final TextEditingController _jobTypeController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -110,6 +110,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           "user_id": _userId!,
           "full_name": _fullName,
           "skills": skillsList,
+ "location": _cityController.text.trim(),
+  "job_type": _jobTypeController.text.trim(),
         },
       );
 
@@ -143,6 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _resumeController.dispose();
     _cityController.dispose();
     _countryController.dispose();
+    _jobTypeController.dispose();
     super.dispose();
   }
 
@@ -348,6 +351,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
               ),
+              _buildSectionCard(
+  icon: Icons.work_outline,
+  title: "Job Type",
+  child: _buildTextField(
+    controller: _jobTypeController,
+    hint: "Full-time / Part-time",
+  ),
+),
               _buildSectionCard(
                 icon: Icons.workspace_premium_outlined,
                 title: "Language",

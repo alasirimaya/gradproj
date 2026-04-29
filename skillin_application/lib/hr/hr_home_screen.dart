@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skillin_application/services/auth_service.dart';
 import 'package:skillin_application/auth/login_screen.dart';
-
 class HrHomeScreen extends StatefulWidget {
   const HrHomeScreen({super.key});
 
@@ -12,19 +11,15 @@ class HrHomeScreen extends StatefulWidget {
 class _HrHomeScreenState extends State<HrHomeScreen> {
   String userName = "HR";
 
-  List<dynamic> candidates = [];
-  bool isLoading = true;
+List<dynamic> candidates = [];
+bool isLoading = true;
+String searchQuery = "";
 
   @override
   void initState() {
     super.initState();
     _loadUser();
-
-    // ❗ Temporarily disabled candidates loading
-    // بسبب error من السيرفر (GET CANDIDATES ERROR)
-    // _loadCandidates();
-
-    isLoading = false;
+    _loadCandidates();
   }
 
   Future<void> _loadUser() async {
@@ -37,18 +32,22 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
       });
     }
   }
+Future<void> _loadCandidates() async {
 
-  Future<void> _loadCandidates() async {
-    final result = await AuthService.getCandidates();
+  final result = await AuthService.getCandidates();
 
-    if (mounted) {
-      setState(() {
-        candidates = result;
-        isLoading = false;
-      });
-    }
+  if (mounted) {
+
+    setState(() {
+
+      candidates = result;
+      isLoading = false;
+
+    });
+
   }
 
+}
   Widget _candidateCard({
     required String name,
     required String subtitle,
@@ -131,29 +130,42 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("HR"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await AuthService.logout();
+    
+//
+  appBar: AppBar(
 
-              if (!mounted) return;
+    title: const Text("HR"),
 
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginScreen(),
-                ),
-                (route) => false,
-              );
-            },
-          ),
-        ],
+    actions: [
+
+      IconButton(
+
+        icon: const Icon(Icons.logout),
+
+        onPressed: () async {
+
+          await AuthService.logout();
+
+if (!mounted) return;
+
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const LoginScreen(),
+    ),
+    (route) => false,
+  );
+        },
+
       ),
-      backgroundColor: const Color(0xFFF5F6FB),
-      body: SafeArea(
+
+    ],
+
+  ),
+//
+  backgroundColor: const Color(0xFFF5F6FB),
+
+  body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           child: Column(
@@ -189,6 +201,53 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
                         height: 1.2,
                       ),
                     ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                           
+                            ),
+                            //////ne
+                            child:Row(
+  children: [
+    const Icon(Icons.search, color: Color(0xFFB5B8C7)),
+    const SizedBox(width: 10),
+    Expanded(
+      child: TextField(
+        onChanged: (value) {
+          setState(() {
+            searchQuery = value.toLowerCase();
+          });
+        },
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          hintText: "Search",
+        ),
+      ),
+    ),
+  ],
+),
+//ne
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4A146),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.tune, color: Colors.white),
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
@@ -203,11 +262,45 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
               ),
               const SizedBox(height: 14),
               Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : const Center(
-                        child: Text("Candidates temporarily disabled"),
-                      ),
+                child: ListView(
+                  children: [
+                 if (isLoading)
+  const Center(child: CircularProgressIndicator())
+else
+  ...candidates.where((user) {
+      final name = (user["full_name"] ?? "").toLowerCase();
+final skill = (user["skill"] ?? "").toLowerCase();
+final job = (user["job_type"] ?? "").toLowerCase();
+
+return name.contains(searchQuery) ||
+       skill.contains(searchQuery) ||
+       job.contains(searchQuery);
+    })
+    .map((user) {
+     print(user);
+    return _candidateCard(
+
+      name: user["full_name"] ?? "No name",
+
+      subtitle:
+          "Open to work · ${user["location"] ?? "Unknown"}",
+
+     tags: [
+
+  (user["skill"] != null && user["skills"] != "")
+      ? user["skill"]
+      : "General",
+
+  (user["job_type"] != null && user["jobType"] != "")
+      ? user["job_type"]
+      : "Open",
+
+],
+    );
+
+  }).toList(),
+                  ],
+                ),
               ),
             ],
           ),
@@ -215,4 +308,5 @@ class _HrHomeScreenState extends State<HrHomeScreen> {
       ),
     );
   }
+
 }
