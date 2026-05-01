@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:skillin_application/auth/register_screen.dart';
 import 'package:skillin_application/auth/auth_gate.dart';
 import 'package:skillin_application/auth/forgot_password_screen.dart';
-import '../services/auth_service.dart';
+import 'package:skillin_application/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -235,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ForgotPasswordScreen(),
+                          builder: (_) => ForgotPasswordScreen(),
                         ),
                       );
                     },
