@@ -20,6 +20,7 @@ def get_personal_users(db: Session = Depends(get_db)):
             "location": getattr(u, "location", ""),
             "skill": getattr(u, "skill", ""),
             "job_type": getattr(u, "job_type", ""),
+            "specialization": getattr(u, "specialization", "")
         }
         for u in users
     ]

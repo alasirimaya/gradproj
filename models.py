@@ -15,6 +15,7 @@ class User(Base):
     job_type = Column(String, default="")
     skill = Column(String, default="")
     location = Column(String, default="")
+    specialization = Column(String(100), default="")
     #
     role = Column(String(30), default="personal")
 

@@ -21,6 +21,8 @@ class ProfileSaveRequest(BaseModel):
     languages: list[str] = []
     location: str = ""
     job_type: str = ""
+    specialization: str = ""
+
 
 
 @router.post("/save")
@@ -43,6 +45,7 @@ def save_profile(
     user.location = payload.location or ""
     user.job_type = payload.job_type or ""
     user.skill = ", ".join(payload.skills) if payload.skills else ""
+    user.specialization = payload.specialization or ""
     db.query(UserSkill).filter(UserSkill.user_id == payload.user_id).delete()
 
     for skill_name in payload.skills:
@@ -75,7 +78,7 @@ def save_profile(
 @router.get("/search")
 def search_users(
     job_type: str = Query(None),
-    skill: str = Query(None),
+    specialization: str = Query(None),
     location: str = Query(None),
     db: Session = Depends(get_db),
 ):
@@ -87,9 +90,8 @@ def search_users(
     if location:
         query = query.filter(User.location.ilike(f"%{location}%"))
 
-    if skill:
-        query = query.filter(User.skill.isnot(None))
-        query = query.filter(User.skill.ilike(f"%{skill}%"))
+    if specialization:
 
+        query = query.filter(User.specialization.ilike(f"%{specialization}%"))
     return query.all()
 
