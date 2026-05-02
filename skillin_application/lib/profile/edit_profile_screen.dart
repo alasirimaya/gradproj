@@ -50,6 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
   final TextEditingController jobTypeController = TextEditingController();
+  final TextEditingController specializationController = TextEditingController();
 
   @override
   void initState() {
@@ -151,6 +152,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           "certificates": certificatesList,
           "location": locationText,
           "job_type": jobTypeController.text,
+          "specialization": specializationController.text.trim(),
         },
       );
 
@@ -185,6 +187,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _cityController.dispose();
     _countryController.dispose();
     jobTypeController.dispose();
+    specializationController.dispose();
     super.dispose();
   }
 
@@ -513,6 +516,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   ),
 
+),
+_buildSectionCard(
+  icon: Icons.work_outline,
+  title: "Specialization",
+  child: _buildTextField(
+    controller: specializationController,
+    hint: "Enter your specialization (e.g. Data Analyst)",
+  ),
 ),
             ],
           ),

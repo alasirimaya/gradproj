@@ -269,11 +269,11 @@ if (!mounted) return;
 else
   ...candidates.where((user) {
       final name = (user["full_name"] ?? "").toLowerCase();
-final skill = (user["skill"] ?? "").toLowerCase();
+final specialization = (user["specialization"] ?? "").toLowerCase();
 final job = (user["job_type"] ?? "").toLowerCase();
 
 return name.contains(searchQuery) ||
-       skill.contains(searchQuery) ||
+       specialization.contains(searchQuery)||
        job.contains(searchQuery);
     })
     .map((user) {
@@ -287,13 +287,15 @@ return name.contains(searchQuery) ||
 
      tags: [
 
-  (user["skill"] != null && user["skills"] != "")
-      ? user["skill"]
-      : "General",
+  
 
   (user["job_type"] != null && user["jobType"] != "")
       ? user["job_type"]
       : "Open",
+      
+      (user["specialization"] != null && user["specialization"] != "")
+    ? user["specialization"]
+    : "General",
 
 ],
     );
